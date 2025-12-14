@@ -77,10 +77,10 @@ st.markdown("""
     .main-title {
         font-size: 2rem;
         text-align: center;
-        padding: 1rem 2rem;
+        padding: 0.8rem 2rem;
         color: #ffffff;
         font-weight: 800;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.2rem;
         text-shadow: 0 0 20px rgba(255, 255, 255, 0.5),
                      0 0 40px rgba(102, 126, 234, 0.3);
         letter-spacing: -0.02em;
@@ -98,7 +98,7 @@ st.markdown("""
         border-radius: var(--border-radius-large);
         box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3),
                     0 0 0 1px rgba(255, 255, 255, 0.2);
-        margin: 0.5rem auto;
+        margin: 0.3rem auto;
         display: block;
         max-width: 100%;
         max-height: 50vh;
@@ -484,7 +484,7 @@ st.markdown("""
         -webkit-backdrop-filter: blur(20px);
         border-radius: var(--border-radius);
         padding: 1rem;
-        margin: 1rem 0;
+        margin: 0.5rem 0;
         box-shadow: 0 4px 20px rgba(102, 126, 234, 0.2),
                     inset 0 0 0 1px rgba(255, 255, 255, 0.3);
         border: 1px solid rgba(255, 255, 255, 0.5);
@@ -595,7 +595,8 @@ button:focus, a:focus, input:focus, select:focus, textarea:focus {{
 @media (max-width: 600px) {{
   .main-title {{
     font-size: calc({_scale} * 1.8rem);
-    padding: 1.2rem;
+    padding: 0.6rem 1rem;
+    margin-bottom: 0.1rem;
   }}
   .english-text {{
     font-size: calc({_scale} * 1.3rem);
@@ -610,7 +611,7 @@ button:focus, a:focus, input:focus, select:focus, textarea:focus {{
   .story-image {{
     max-width: 100%;
     max-height: 35vh;
-    margin: 12px auto;
+    margin: 8px auto;
     border-radius: 16px;
   }}
   .stButton>button {{
@@ -639,7 +640,7 @@ button:focus, a:focus, input:focus, select:focus, textarea:focus {{
   }}
   .compact-control-panel {{
     padding: 0.8rem;
-    margin: 0.8rem 0;
+    margin: 0.3rem 0;
   }}
 }}
 
@@ -1334,9 +1335,6 @@ else:
             st.markdown('<div class="content-with-fixed-nav">', unsafe_allow_html=True)
 
             if page['en']:
-                # 페이지 현황 표시
-                st.markdown(f"<div class='page-status'>페이지 {current_page + 1} / {len(story['pages'])}</div>", unsafe_allow_html=True)
-
                 # 상단 컴팩트 컨트롤 패널
                 st.markdown('<div class="compact-control-panel">', unsafe_allow_html=True)
 
@@ -1397,11 +1395,6 @@ else:
             # 한국어 번역 표시
             if st.session_state.show_korean and page['ko']:
                 st.markdown(f'<div class="korean-text">{page["ko"]}</div>', unsafe_allow_html=True)
-
-            # 진행 상황 시각화
-            progress = (current_page + 1) / len(story['pages'])
-            st.progress(progress)
-            st.markdown(f"<div class='progress-text'>📊 학습 진행률: {int(progress * 100)}%</div>", unsafe_allow_html=True)
 
             # 컨텐츠 영역 종료
             st.markdown('</div>', unsafe_allow_html=True)

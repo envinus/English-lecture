@@ -1394,13 +1394,9 @@ else:
             if page['image_url']:
                 st.markdown(f'<img src="{page["image_url"]}" alt="{story["title"]} - 페이지 {current_page + 1} 삽화" class="story-image">', unsafe_allow_html=True)
 
-            # 영어 텍스트 표시
-            if page['en']:
-                st.markdown(f'<div class="english-text">{page["en"]}</div>', unsafe_allow_html=True)
-
-                # 한국어 번역 표시
-                if st.session_state.show_korean and page['ko']:
-                    st.markdown(f'<div class="korean-text">{page["ko"]}</div>', unsafe_allow_html=True)
+            # 한국어 번역 표시
+            if st.session_state.show_korean and page['ko']:
+                st.markdown(f'<div class="korean-text">{page["ko"]}</div>', unsafe_allow_html=True)
 
             # 진행 상황 시각화
             progress = (current_page + 1) / len(story['pages'])

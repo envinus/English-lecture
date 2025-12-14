@@ -444,6 +444,52 @@ st.markdown("""
         transform: translateX(4px);
     }
 
+    /* 하단 고정 네비게이션 바 - 모바일 최적화 */
+    .fixed-bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        padding: 1rem 1.5rem;
+        box-shadow: 0 -4px 24px rgba(102, 126, 234, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        z-index: 9999;
+        border-top: 2px solid rgba(255, 255, 255, 0.6);
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* 하단 네비게이션용 컨텐츠 여백 */
+    .content-with-fixed-nav {
+        padding-bottom: 120px;
+    }
+
+    /* 상단 컴팩트 컨트롤 패널 */
+    .compact-control-panel {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin: 1rem 0;
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.2),
+                    inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
     /* Info/Success/Warning 박스 - 글래스 효과 */
     .stAlert {
         border-radius: 16px;
@@ -563,8 +609,9 @@ button:focus, a:focus, input:focus, select:focus, textarea:focus {{
   }}
   .story-image {{
     max-width: 100%;
-    margin: 16px auto;
-    border-radius: 20px;
+    max-height: 35vh;
+    margin: 12px auto;
+    border-radius: 16px;
   }}
   .stButton>button {{
     font-size: calc({_scale} * 0.95rem);
@@ -583,6 +630,16 @@ button:focus, a:focus, input:focus, select:focus, textarea:focus {{
   }}
   [data-testid="stMetricLabel"] {{
     font-size: calc({_scale} * 0.85rem);
+  }}
+  .fixed-bottom-nav {{
+    padding: 0.8rem 1rem;
+  }}
+  .content-with-fixed-nav {{
+    padding-bottom: 100px;
+  }}
+  .compact-control-panel {{
+    padding: 0.8rem;
+    margin: 0.8rem 0;
   }}
 }}
 
@@ -678,6 +735,18 @@ if st.session_state.ui_high_contrast:
             background: #f0f0f0 !important;
             color: #000000 !important;
             border: 2px solid #000000 !important;
+        }
+        .fixed-bottom-nav {
+            background: #ffffff !important;
+            border-top: 3px solid #000000 !important;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3) !important;
+            backdrop-filter: none !important;
+        }
+        .compact-control-panel {
+            background: #f5f5f5 !important;
+            border: 2px solid #000000 !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
         }
         </style>
         """,
@@ -1261,20 +1330,18 @@ else:
             current_page = st.session_state.current_page
             page = story['pages'][current_page]
 
-            # 이미지 표시
-            if page['image_url']:
-                st.markdown(f'<img src="{page["image_url"]}" alt="{story["title"]} - 페이지 {current_page + 1} 삽화" class="story-image">', unsafe_allow_html=True)
+            # 컨텐츠 영역 시작 (하단 네비게이션을 위한 여백 추가)
+            st.markdown('<div class="content-with-fixed-nav">', unsafe_allow_html=True)
 
             if page['en']:
                 # 페이지 현황 표시
                 st.markdown(f"<div class='page-status'>페이지 {current_page + 1} / {len(story['pages'])}</div>", unsafe_allow_html=True)
 
-                # 컨트롤 패널
-                st.markdown('<div class="control-panel">', unsafe_allow_html=True)
+                # 상단 컴팩트 컨트롤 패널
+                st.markdown('<div class="compact-control-panel">', unsafe_allow_html=True)
 
-                # 컨트롤 행 - 그룹별로 구분
-                col1, col2, sep1, col3, col4, sep2, col5, col6 = st.columns([1.5, 1, 0.1, 1, 1.2, 0.1, 0.8, 0.8])
-
+                # 첫 번째 행: 속도와 듣기
+                col1, col2 = st.columns([2, 1])
                 with col1:
                     # 속도 선택
                     speed_option = st.selectbox(
@@ -1292,24 +1359,23 @@ else:
                         st.session_state.speech_speed = 1.0
 
                 with col2:
-                    if st.button("🔊 듣기", use_container_width=True):
+                    if st.button("🔊 듣기", use_container_width=True, key=f"listen_{current_page}"):
                         with st.spinner("음성 생성 중..."):
                             audio_base64 = text_to_speech(page['en'], speed=st.session_state.speech_speed)
                             if audio_base64:
                                 play_audio(audio_base64)
 
-                with sep1:
-                    st.markdown('<div class="button-divider"></div>', unsafe_allow_html=True)
-
+                # 두 번째 행: 해석 체크박스와 재번역
+                col3, col4 = st.columns([1, 1.5])
                 with col3:
                     st.session_state.show_korean = st.checkbox(
-                        "🇰🇷 해석",
+                        "🇰🇷 해석 보기",
                         value=st.session_state.show_korean,
                         key=f"show_korean_{current_page}"
                     )
 
                 with col4:
-                    if st.button("🔄 다시 번역하기", use_container_width=True):
+                    if st.button("🔄 다시 번역하기", use_container_width=True, key=f"retranslate_{current_page}"):
                         try:
                             from gemini_helper import translate_to_korean
                             with st.spinner("번역 중..."):
@@ -1322,39 +1388,61 @@ else:
                             st.error(f"번역 중 오류 발생: {str(e)}")
                             st.warning("Gemini API 키가 설정되어 있는지 확인해주세요.")
 
-                with sep2:
-                    st.markdown('<div class="button-divider"></div>', unsafe_allow_html=True)
-
-                with col5:
-                    if st.button("⬅️ 이전", disabled=(current_page == 0), use_container_width=True):
-                        st.session_state.current_page -= 1
-                        st.rerun()
-
-                with col6:
-                    if st.button("다음 ➡️", disabled=(current_page >= len(story['pages']) - 1), use_container_width=True):
-                        # 통계 업데이트: 페이지 읽기
-                        update_page_read()
-
-                        # 마지막 페이지 완료 시 동화책 완료 기록
-                        if current_page == len(story['pages']) - 2:  # 다음이 마지막 페이지
-                            mark_story_completed(story['id'], story['title'])
-                            st.success(f"🎉 '{story['title']}' 완독을 축하합니다!")
-                            st.balloons()
-
-                        st.session_state.current_page += 1
-                        st.rerun()
-
-                # 컨트롤 패널 닫기
                 st.markdown('</div>', unsafe_allow_html=True)
+
+            # 이미지 표시
+            if page['image_url']:
+                st.markdown(f'<img src="{page["image_url"]}" alt="{story["title"]} - 페이지 {current_page + 1} 삽화" class="story-image">', unsafe_allow_html=True)
+
+            # 영어 텍스트 표시
+            if page['en']:
+                st.markdown(f'<div class="english-text">{page["en"]}</div>', unsafe_allow_html=True)
 
                 # 한국어 번역 표시
                 if st.session_state.show_korean and page['ko']:
                     st.markdown(f'<div class="korean-text">{page["ko"]}</div>', unsafe_allow_html=True)
 
-            # 진행 상황 시각화 (구분선 제거)
+            # 진행 상황 시각화
             progress = (current_page + 1) / len(story['pages'])
             st.progress(progress)
             st.markdown(f"<div class='progress-text'>📊 학습 진행률: {int(progress * 100)}%</div>", unsafe_allow_html=True)
+
+            # 컨텐츠 영역 종료
+            st.markdown('</div>', unsafe_allow_html=True)
+
+            # 하단 고정 네비게이션 바
+            st.markdown('<div class="fixed-bottom-nav">', unsafe_allow_html=True)
+
+            nav_col1, nav_col2, nav_col3 = st.columns([1, 2, 1])
+
+            with nav_col1:
+                if st.button("⬅️ 이전", disabled=(current_page == 0), use_container_width=True, key=f"prev_{current_page}"):
+                    st.session_state.current_page -= 1
+                    st.rerun()
+
+            with nav_col2:
+                st.markdown(
+                    f"<div style='text-align: center; font-weight: 600; padding: 0.8rem; color: var(--color-primary);'>"
+                    f"페이지 {current_page + 1} / {len(story['pages'])}"
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
+
+            with nav_col3:
+                if st.button("다음 ➡️", disabled=(current_page >= len(story['pages']) - 1), use_container_width=True, key=f"next_{current_page}"):
+                    # 통계 업데이트: 페이지 읽기
+                    update_page_read()
+
+                    # 마지막 페이지 완료 시 동화책 완료 기록
+                    if current_page == len(story['pages']) - 2:  # 다음이 마지막 페이지
+                        mark_story_completed(story['id'], story['title'])
+                        st.success(f"🎉 '{story['title']}' 완독을 축하합니다!")
+                        st.balloons()
+
+                    st.session_state.current_page += 1
+                    st.rerun()
+
+            st.markdown('</div>', unsafe_allow_html=True)
 
     # ==================== 단어 학습 모드 ====================
     elif st.session_state.learning_mode == "단어 퀴즈":
